@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>券码编辑</title>
+    {% include 'system/common/header.html' %}
+</head>
+<body>
+<form class="layui-form">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="main-container">
+                <div class="layui-form-item layui-hide">
+                    <label class="layui-form-label">ID</label>
+                    <div class="layui-input-block">
+                        <input type="text" value="{{ coupon.id }}" name="id" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">券码</label>
+                    <div class="layui-input-block">
+                        <input type="text" value="{{ coupon.code }}" name="code" lay-verify="required" 
+                               autocomplete="off" placeholder="请输入券码" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">折扣</label>
+                    <div class="layui-input-block">
+                        <input type="text" value="{{ coupon.discount }}" name="discount" 
+                               lay-verify="required|number" autocomplete="off" 
+                               placeholder="请输入折扣（如0.8表示8折）" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">生效时间</label>
+                    <div class="layui-input-block">
+                        <input type="text" value="{{ coupon.start_time.strftime('%Y-%m-%d %H:%M:%S') }}" 
+                               name="start_time" class="layui-input" id="startTime">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">过期时间</label>
+                    <div class="layui-input-block">
+                        <input type="text" value="{{ coupon.end_time.strftime('%Y-%m-%d %H:%M:%S') }}" 
+                               name="end_time" class="layui-input" id="endTime">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">状态</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="enable" value="1" title="启用" 
+                               {% if coupon.enable == 1 %}checked{% endif %}>
+                        <input type="radio" name="enable" value="0" title="禁用" 
+                               {% if coupon.enable == 0 %}checked{% endif %}>
+                    </div>
+                </div>
+
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">描述</label>
+                    <div class="layui-input-block">
+                        <textarea placeholder="请输入券码描述" name="description" 
+                                  class="layui-textarea">{{ coupon.description or '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-sm" lay-submit="" lay-filter="coupon-update">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+{% include 'system/common/footer.html' %}
+<script>
+    layui.use(['form', 'jquery', 'laydate'], function () {
+        let form = layui.form
+        let $ = layui.jquery
+        let laydate = layui.laydate
+
+        // 渲染日期时间选择器
+        laydate.render({
+            elem: '#startTime',
+            type: 'datetime',
+            format: 'yyyy-MM-dd HH:mm:ss'
+        })
+        
+        laydate.render({
+            elem: '#endTime',
+            type: 'datetime',
+            format: 'yyyy-MM-dd HH:mm:ss'
+        })
+
+        form.on('submit(coupon-update)', function (data) {
+            $.ajax({
+                url: '/system/coupon/update',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                contentType: 'application/json',
+                type: 'put',
+                success: function (result) {
+                    if (result.success) {
+                        layer.msg(result.msg, {icon: 1, time: 1000}, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name))
+                            parent.layui.table.reload('coupon-table')
+                        })
+                    } else {
+                        layer.msg(result.msg, {icon: 2, time: 1000})
+                    }
+                }
+            })
+            return false
+        })
+    })
+</script>
+</body>
+</html>
