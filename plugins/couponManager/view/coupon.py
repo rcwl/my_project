@@ -1,9 +1,11 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from applications.common.utils.rights import authorize
-from applications.common.utils.curd import get_one_by_id, delete_one_by_id
+from applications.common.curd import get_one_by_id, delete_one_by_id
 from ..models.coupon import Coupon
 from applications.extensions import db
+from  datetime import datetime
+
 
 bp = Blueprint('coupon', __name__, url_prefix='/system/coupon')
 
@@ -31,18 +33,35 @@ def data():
                  "used": c.used, "create_time": c.create_time} for c in coupons]
     })
 
+from datetime import datetime  # 顶部添加导入
+
 # 添加券码
 @bp.post('/save')
 @login_required
 @authorize("system:coupon:add")
 def save():
     data = request.get_json()
+    
+    # 关键修改：将字符串日期转换为datetime对象
+    try:
+        start_time = datetime.strptime(data['start_time'], '%Y-%m-%d %H:%M:%S')
+        end_time = datetime.strptime(data['end_time'], '%Y-%m-%d %H:%M:%S')
+    except ValueError as e:
+        return jsonify({"success": False, "msg": f"日期格式错误: {str(e)}"})
+    
+    # 转换折扣为浮点数
+    try:
+        discount = float(data['discount'])
+    except ValueError:
+        return jsonify({"success": False, "msg": "折扣必须是数字"})
+    
     coupon = Coupon(
         code=data['code'],
-        discount=data['discount'],
-        description=data['description'],
-        start_time=data['start_time'],
-        end_time=data['end_time']
+        discount=discount,
+        description=data.get('description', ''),
+        start_time=start_time,  # 使用转换后的datetime对象
+        end_time=end_time,      # 使用转换后的datetime对象
+        enable=int(data.get('enable', 1))  # 确保状态是整数
     )
     db.session.add(coupon)
     db.session.commit()
@@ -54,10 +73,27 @@ def save():
 @authorize("system:coupon:edit")
 def update():
     data = request.get_json()
+    
+    # 转换日期
+    try:
+        start_time = datetime.strptime(data['start_time'], '%Y-%m-%d %H:%M:%S')
+        end_time = datetime.strptime(data['end_time'], '%Y-%m-%d %H:%M:%S')
+    except ValueError as e:
+        return jsonify({"success": False, "msg": f"日期格式错误: {str(e)}"})
+    
+    # 转换折扣
+    try:
+        discount = float(data['discount'])
+    except ValueError:
+        return jsonify({"success": False, "msg": "折扣必须是数字"})
+    
     coupon = get_one_by_id(Coupon, data['id'])
     coupon.code = data['code']
-    coupon.discount = data['discount']
-    coupon.enable = data['enable']
+    coupon.discount = discount
+    coupon.description = data.get('description', '')
+    coupon.start_time = start_time
+    coupon.end_time = end_time
+    coupon.enable = int(data['enable'])
     db.session.commit()
     return jsonify({"success": True, "msg": "更新成功"})
 
@@ -85,3 +121,18 @@ def exchange():
     coupon.used = 1  # 标记为已使用
     db.session.commit()
     return jsonify({"success": True, "msg": f"兑换成功！获得{coupon.discount*10}折优惠"})
+
+# 新增券码页面
+@bp.get('/add')
+@login_required
+@authorize("system:coupon:add")
+def add():
+    return render_template('system/coupon/add.html')
+
+# 编辑券码页面
+@bp.get('/edit/<int:_id>')
+@login_required
+@authorize("system:coupon:edit")
+def edit(_id):
+    coupon = get_one_by_id(Coupon, _id)
+    return render_template('system/coupon/edit.html', coupon=coupon)

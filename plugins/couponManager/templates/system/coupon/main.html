@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>券码管理</title>
     {% include 'system/common/header.html' %}
 </head>
+
 <body class="pear-container">
     {# 查询表单 #}
     <div class="layui-card">
@@ -28,49 +30,135 @@
         </div>
     </div>
 
+    {# 表格工具栏 - 新增按钮 #}
+    <script type="text/html" id="table-toolbar">
+        <div class="layui-btn-container">
+            <button class="layui-btn layui-btn-normal" lay-event="add">
+                <i class="layui-icon layui-icon-add-1"></i> 新增券码
+            </button>
+        </div>
+    </script>
+
+    {# 表格操作列 - 编辑和删除按钮 #}
+    <script type="text/html" id="table-bar">
+        <button class="layui-btn layui-btn-xs" lay-event="edit">
+            <i class="layui-icon layui-icon-edit"></i> 编辑
+        </button>
+        <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">
+            <i class="layui-icon layui-icon-delete"></i> 删除
+        </button>
+    </script>
+
     {% include 'system/common/footer.html' %}
     <script>
-        layui.use(['table', 'form'], function() {
+        layui.use(['table', 'form', 'layer'], function () {
             let table = layui.table;
             let form = layui.form;
+            let layer = layui.layer;
+            let $ = layui.jquery;
 
             // 渲染表格
-            table.render({
+            let tableIns = table.render({
                 elem: '#coupon-table',
                 url: '/system/coupon/data',
                 page: true,
+                toolbar: '#table-toolbar',  // 启用工具栏
                 cols: [[
-                    {field: 'id', title: 'ID', align: 'center'},
-                    {field: 'code', title: '券码', align: 'center'},
-                    {field: 'discount', title: '折扣', align: 'center', templet: d => d.discount*10 + '折'},
-                    {field: 'description', title: '描述', align: 'center'},
-                    {field: 'enable', title: '状态', align: 'center', 
-                        templet: d => `<input type="checkbox" name="enable" value="${d.id}" lay-skin="switch" lay-text="启用|禁用" ${d.enable ? 'checked' : ''} lay-filter="coupon-enable">`},
-                    {field: 'used', title: '是否使用', align: 'center', templet: d => d.used ? '已使用' : '未使用'},
-                    {field: 'create_time', title: '创建时间', align: 'center'},
-                    {title: '操作', align: 'center', toolbar: '#table-bar'}
+                    { type: 'checkbox', fixed: 'left' },
+                    { field: 'id', title: 'ID', align: 'center', width: 80 },
+                    { field: 'code', title: '券码', align: 'center' },
+                    { field: 'discount', title: '折扣', align: 'center', templet: d => d.discount * 10 + '折', width: 100 },
+                    { field: 'description', title: '描述', align: 'center' },
+                    {
+                        field: 'enable', title: '状态', align: 'center',
+                        templet: d => `<input type="checkbox" name="enable" value="${d.id}" lay-skin="switch" lay-text="启用|禁用" ${d.enable ? 'checked' : ''} lay-filter="coupon-enable">`,
+                        width: 120
+                    },
+                    { field: 'used', title: '是否使用', align: 'center', templet: d => d.used ? '已使用' : '未使用', width: 120 },
+                    { field: 'create_time', title: '创建时间', align: 'center' },
+                    { title: '操作', align: 'center', toolbar: '#table-bar', width: 180 }
                 ]],
-                toolbar: '#table-toolbar'
+            });
+
+            // 监听工具栏事件（新增按钮）
+            table.on('toolbar(coupon-table)', function (obj) {
+                switch (obj.event) {
+                    case 'add':
+                        // 打开新增窗口
+                        layer.open({
+                            type: 2,
+                            title: '新增券码',
+                            content: '/system/coupon/add',  // 新增页面路由
+                            area: ['600px', '500px'],
+                            maxmin: true
+                        });
+                        break;
+                }
+            });
+
+            // 监听行操作事件（编辑和删除按钮）
+            table.on('tool(coupon-table)', function (obj) {
+                let data = obj.data;
+                switch (obj.event) {
+                    case 'edit':
+                        // 打开编辑窗口
+                        layer.open({
+                            type: 2,
+                            title: '编辑券码',
+                            content: `/system/coupon/edit/${data.id}`,  // 编辑页面路由，带ID参数
+                            area: ['600px', '500px'],
+                            maxmin: true
+                        });
+                        break;
+                    case 'del':
+                        // 删除确认
+                        layer.confirm('确定要删除该券码吗？', function (index) {
+                            $.ajax({
+                                url: `/system/coupon/remove/${data.id}`,
+                                type: 'delete',
+                                success: function (res) {
+                                    if (res.success) {
+                                        layer.msg('删除成功', { icon: 1 });
+                                        obj.del();  // 从表格中删除该行
+                                    } else {
+                                        layer.msg('删除失败: ' + res.msg, { icon: 2 });
+                                    }
+                                }
+                            });
+                            layer.close(index);
+                        });
+                        break;
+                }
             });
 
             // 监听查询
-            form.on('submit(coupon-query)', function(data) {
-                table.reload('coupon-table', {where: data.field});
+            form.on('submit(coupon-query)', function (data) {
+                table.reload('coupon-table', { where: data.field });
                 return false;
             });
 
-            // 监听启用/禁用
-            form.on('switch(coupon-enable)', function(obj) {
-                let url = obj.elem.checked ? '/system/coupon/enable' : '/system/coupon/disable';
-                layui.$.ajax({
-                    url: url,
+            // 监听启用/禁用开关
+            form.on('switch(coupon-enable)', function (obj) {
+                let id = this.value;
+                let enable = obj.elem.checked ? 1 : 0;
+                $.ajax({
+                    url: '/system/coupon/update',
                     type: 'put',
-                    data: JSON.stringify({id: this.value}),
+                    data: JSON.stringify({ id: id, enable: enable }),
                     contentType: 'application/json',
-                    success: res => res.success ? layui.layer.msg('操作成功') : layui.layer.msg('操作失败')
+                    success: function (res) {
+                        if (res.success) {
+                            layer.msg('状态更新成功', { icon: 1 });
+                        } else {
+                            layer.msg('更新失败', { icon: 2 });
+                            obj.elem.checked = !obj.elem.checked;  // 恢复开关状态
+                            form.render('checkbox');  // 重新渲染
+                        }
+                    }
                 });
             });
         });
     </script>
 </body>
+
 </html>
