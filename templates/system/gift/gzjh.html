@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>员工工作计划填报系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a3a5f, #2c5a7d);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: linear-gradient(to right, #2c5a7d, #3a7ca5);
+            color: white;
+            padding: 25px 40px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .company-logo {
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .header-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .deadline {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        
+        .content {
+            display: flex;
+            min-height: 500px;
+        }
+        
+        .left-panel {
+            flex: 1;
+            padding: 35px;
+            background: #f8fafc;
+            border-right: 1px solid #eaeff5;
+        }
+        
+        .right-panel {
+            width: 350px;
+            background: #f0f7ff;
+            padding: 30px;
+        }
+        
+        .panel-title {
+            color: #2c5a7d;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e0ecf9;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .panel-title i {
+            background: #2c5a7d;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .search-box {
+            margin-bottom: 40px;
+        }
+        
+        .input-group {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 16px 25px;
+            border: 2px solid #d0e0f0;
+            background: white;
+            border-radius: 8px 0 0 8px;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .input-group input:focus {
+            border-color: #3a7ca5;
+            box-shadow: 0 0 0 3px rgba(58, 124, 165, 0.2);
+        }
+        
+        .input-group button {
+            background: linear-gradient(to right, #3a7ca5, #4c9ac0);
+            color: white;
+            border: none;
+            padding: 0 35px;
+            border-radius: 0 8px 8px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .input-group button:hover {
+            background: linear-gradient(to right, #4c9ac0, #5ab0db);
+            transform: translateY(-2px);
+        }
+        
+        .input-group button:active {
+            transform: translateY(0);
+        }
+        
+        .note {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #2c5a7d;
+            border-left: 4px solid #3a7ca5;
+        }
+        
+        .note i {
+            margin-right: 8px;
+            color: #3a7ca5;
+        }
+        
+        .employees-section {
+            margin-top: 40px;
+        }
+        
+        .employees-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+        
+        .employee-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border: 1px solid #e0ecf9;
+        }
+        
+        .employee-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            border-color: #c0d8f0;
+        }
+        
+        .employee-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5ab0db, #3a7ca5);
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .employee-name {
+            font-weight: 600;
+            color: #2c5a7d;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .employee-dept {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .employee-link {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #3a7ca5;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+        
+        .employee-card:hover .employee-link {
+            background: #3a7ca5;
+            color: white;
+        }
+        
+        .instructions {
+            margin-top: 30px;
+        }
+        
+        .instructions ul {
+            padding-left: 25px;
+        }
+        
+        .instructions li {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #444;
+            position: relative;
+        }
+        
+        .instructions li:before {
+            content: "•";
+            color: #3a7ca5;
+            font-weight: bold;
+            display: inline-block; 
+            width: 1em;
+            margin-left: -1em;
+            font-size: 1.2rem;
+        }
+        
+        .stats {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stats-title {
+            text-align: center;
+            color: #3a7ca5;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .stat-item {
+            background: #f0f7ff;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c5a7d;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f9cb5;
+            background: #f0f7ff;
+            font-size: 0.9rem;
+            border-top: 1px solid #e0ecf9;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .right-panel {
+                width: 100%;
+                border-top: 1px solid #e0ecf9;
+            }
+            
+            .company-logo {
+                position: relative;
+                left: 0;
+                top: 0;
+                transform: none;
+                margin: 0 auto 15px;
+            }
+            
+            header {
+                text-align: center;
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="company-logo">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="header-content">
+                <h1>员工工作计划填报系统</h1>
+                <p>季度工作计划填报与进度跟踪平台</p>
+                <div class="deadline">
+                    <i class="fas fa-clock"></i> 填报截止时间: 2025年7月23日 17:00
+                </div>
+            </div>
+        </header>
+        
+        <div class="content">
+            <div class="left-panel">
+                <div class="search-box">
+                    <h2 class="panel-title"><i class="fas fa-user"></i>员工填报入口</h2>
+                    <div class="input-group">
+                        <input type="text" id="employeeInput" placeholder="请输入您的姓名">
+                        <button id="goButton">
+                            <i class="fas fa-file-export"></i> 进入填报
+                        </button>
+                    </div>
+                    <div class="note">
+                        <i class="fas fa-info-circle"></i> 提示：请输入您的全名，系统将自动跳转到您的专属填报页面
+                    </div>
+                </div>
+                
+                <div class="employees-section">
+                    <h2 class="panel-title"><i class="fas fa-users"></i>员工列表</h2>
+                    <div class="employees-grid" id="employeesGrid">
+                        <!-- 员工卡片将通过JS动态生成 -->
+                    </div>
+                </div>
+            </div>
+            
+             <!-- <div class="right-panel">
+                <h2 class="panel-title"><i class="fas fa-list-check"></i>填报说明</h2>
+                <div class="instructions">
+                    <ul>
+                        <li>请准确填写本季度工作计划及关键绩效指标(KPI)</li>
+                        <li>工作计划需包含具体任务、预期成果和完成时间节点</li>
+                        <li>每个任务需设定明确的量化目标和评估标准</li>
+                        <li>填报完成后请仔细检查并确认提交</li>
+                        <li>如需修改，请在截止日期前重新提交更新版本</li>
+                        <li>部门主管将在3个工作日内完成审核并反馈</li>
+                    </ul>
+                </div> 
+                
+                 <div class="stats">
+                    <h3 class="stats-title">填报进度统计</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">78%</div>
+                            <div class="stat-label">完成率</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">32</div>
+                            <div class="stat-label">已提交</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">9</div>
+                            <div class="stat-label">待提交</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">5</div>
+                            <div class="stat-label">待审核</div>
+                        </div>
+                    </div>
+                </div> 
+                
+                <div class="instructions" style="margin-top: 30px;">
+                    <h2 class="panel-title"><i class="fas fa-headset"></i>技术支持</h2>
+                    <ul>
+                        <li>填报问题咨询：人力资源部 - 张经理 (分机：8820)</li>
+                        <li>系统技术支持：IT部门 - 李工程师 (分机：7803)</li>
+                        <li>紧急联系邮箱：support@company-hr.com</li>
+                    </ul>
+                </div> 
+            </div> -->
+        </div>
+        
+        <footer>
+            <!-- <p>© 2023 企业工作计划管理系统 | 人力资源部与信息科技部联合开发</p> -->
+        </footer>
+    </div>
+
+    <script>
+        // 员工数据（姓名到填报链接的映射）
+        const employees = [
+            {
+                name: "杨盛华",
+                department: "商业运营管理部",
+                link: "https://www.kdocs.cn/team/2531178834?folderid=399984831726",
+                avatarBg: "linear-gradient(135deg, #5ab0db, #3a7ca5)"
+            },
+            {
+                name: "王勇",
+                department: "商业运营管理部",
+                link: "https://www.kdocs.cn/team/2531356561?folderid=399979973278",
+                avatarBg: "linear-gradient(135deg, #ff9a9e, #fad0c4)"
+            },
+            {
+                name: "刘京",
+                department: "商业运营管理部",
+                link: "https://www.kdocs.cn/team/2528078258?folderid=399986023210",
+                avatarBg: "linear-gradient(135deg, #a1c4fd, #c2e9fb)"
+            },
+            {
+                name: "胡龙宇",
+                department: "商业运营管理部",
+                link: "https://www.kdocs.cn/team/2531355418?folderid=399979973325",
+                avatarBg: "linear-gradient(135deg, #ffecd2, #fcb69f)"
+            },
+            {
+                name: "陈涵玥",
+                department: "商业运营管理部",
+                link: "https://www.kdocs.cn/team/2530383042?folderid=399986023167",
+                avatarBg: "linear-gradient(135deg, #84fab0, #8fd3f4)"
+            },
+            {
+                name: "木相",
+                department: "商业运营管理部",
+                link: "https://www.kdocs.cn/team/2530383520?folderid=399979973279",
+                avatarBg: "linear-gradient(135deg, #d4fc79, #96e6a1)"
+            },
+            {
+                name: "张新华",
+                department: "商业运营管理部",
+                link: "https://www.kdocs.cn/team/2531357358?folderid=399979973318",
+                avatarBg: "linear-gradient(135deg, #a6c0fe, #f68084)"
+            },
+            {
+                name: "向锦",
+                department: "商业运营管理部部",
+                link: "https://www.kdocs.cn/team/2530383499?folderid=399984372274",
+                avatarBg: "linear-gradient(135deg, #fccb90, #d57eeb)"
+            },
+            {
+                name: "木军志",
+                department: "商业运营管理部部",
+                link: "https://www.kdocs.cn/team/2531179918?folderid=399979973313",
+                avatarBg: "linear-gradient(135deg, #fccb90, #d57eeb)"
+            },
+            {
+                name: "和建成",
+                department: "商业运营管理部部",
+                link: "https://www.kdocs.cn/team/2530813110?folderid=399974900306",
+                avatarBg: "linear-gradient(135deg, #fccb90, #d57eeb)"
+            },
+            {
+                name: "张茂贤",
+                department: "商业运营管理部部",
+                link: "#",
+                avatarBg: "linear-gradient(135deg, #fccb90, #d57eeb)"
+            }
+        ];
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            const goButton = document.getElementById('goButton');
+            const employeeInput = document.getElementById('employeeInput');
+            const employeesGrid = document.getElementById('employeesGrid');
+            
+            // 生成员工卡片
+            employees.forEach(employee => {
+                const employeeCard = document.createElement('div');
+                employeeCard.className = 'employee-card';
+                
+                // 获取姓名首字母作为头像
+                const initials = employee.name.split('').filter(char => char.match(/[\u4e00-\u9fa5]/)).slice(0, 2).join('');
+                
+                employeeCard.innerHTML = `
+                    <div class="employee-avatar" style="background: ${employee.avatarBg}">${initials}</div>
+                    <div class="employee-name">${employee.name}</div>
+                    <div class="employee-dept">${employee.department}</div>
+                    <div class="employee-link">进入填报 <i class="fas fa-arrow-right"></i></div>
+                `;
+                
+                employeeCard.addEventListener('click', function() {
+                    window.open(employee.link, '_blank');
+                });
+                
+                employeesGrid.appendChild(employeeCard);
+            });
+            
+            // 跳转按钮点击事件
+            goButton.addEventListener('click', function() {
+                const employeeName = employeeInput.value.trim();
+                redirectToLink(employeeName);
+            });
+            
+            // 输入框回车事件
+            employeeInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const employeeName = employeeInput.value.trim();
+                    redirectToLink(employeeName);
+                }
+            });
+            
+            // 跳转函数
+            function redirectToLink(name) {
+                if (name) {
+                    const employee = employees.find(emp => emp.name === name);
+                    if (employee) {
+                        window.open(employee.link, '_blank');
+                    } else {
+                        alert('未找到该员工，请检查姓名是否正确或联系系统管理员');
+                    }
+                } else {
+                    alert('请输入员工姓名');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
